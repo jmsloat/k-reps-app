@@ -1,38 +1,59 @@
 package kreps.app.data
 
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Parser
 import com.github.kittinunf.fuel.core.FuelManager
+import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.httpGet
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
 import kreps.app.core.Address
+import kreps.app.core.Representative
+import java.io.Reader
+import java.lang.reflect.Type
 
 class VoterInfoRepository {
 
-    init{
+    init {
         FuelManager.instance.basePath = "https://www.googleapis.com/civicinfo/v2"
         FuelManager.instance.baseParams = listOf("key" to CivicInfoKeyProvider.GetGoogleCivicInfoApiKey())
     }
 
-    fun getRepresentatives(address: Address){
-        val response = "/representatives".httpGet(listOf("address" to address.toString()))
-                .responseString{
-                    _, _, result ->
-                    val (data, err) = result
-                    if(err == null) {
-                        val json = data?.let { parseJsonResponse(it) }
-                    }
-                }
+    fun getRepresentatives(address: Address): Unit {
+        val response = "/representatives".httpGet(listOf("address" to address.toString())).response { request, response, result ->
+        }
     }
 
-    fun parseJsonResponse(response : String) : JsonObject{
-        val parser = Parser()
-        val sb = StringBuilder(response)
-        return parser.parse(sb) as JsonObject
+    fun printRepresentatives(reps: List<Representative>): Unit {
+        for (x in reps) {
+            println(x);
+        }
     }
 
-}
+    class RepDeserializer : ResponseDeserializable<Representative> {
+        override fun deserialize(reader: Reader): Representative? {
+            return super.deserialize(reader)
+        }
+    }
 
-class GoogleCivicInfoResponse {
+
+    data class GoogleCivicInfoResponse (
+            val divisions: List<Int>,
+            val offices: List<Office>
+    ) {
+
+        data class Office(val officeName: String, val divisionId: String, val levels: List<String>);
+
+        class GoogleJsonDeseralizer : JsonDeserializer<GoogleCivicInfoResponse> {
+            override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): GoogleCivicInfoResponse {
+                if (json == null) throw NullPointerException("invalid json")
+                val o = json.asJsonObject
+                val offices = o.get("office");
+
+                return GoogleCivicInfoResponse(listOf(), listOf());
+            }
+
+        }
+    }
 
 }
 
