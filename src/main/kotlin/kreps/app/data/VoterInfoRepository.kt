@@ -20,6 +20,7 @@ class VoterInfoRepository {
 
     fun getRepresentatives(address: Address): Unit {
         val response = "/representatives".httpGet(listOf("address" to address.toString())).response { request, response, result ->
+            println(response.toString())
         }
     }
 
