@@ -8,6 +8,9 @@ data class Address(
         val state: String,
         val zip: Int
 ) {
+
+    constructor() : this("", "", "", "", 0)
+    
     override fun toString(): String {
         return "${this.line1} ${this.line2} ${this.city} ${this.state} ${this.zip}"
     }

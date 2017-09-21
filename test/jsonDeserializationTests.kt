@@ -1,8 +1,12 @@
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import kreps.app.core.Address
+import kreps.app.core.Party
+import kreps.app.core.Representative
 import kreps.app.data.CivicInfo
 import kreps.app.data.Division
 import kreps.app.data.GoogleCivicInfoJsonDeserializer
+import kreps.app.data.Office
 import org.junit.Before
 import org.junit.Test
 import java.io.StringReader
@@ -1584,7 +1588,7 @@ class JsonDeserializationTests {
  ]
 }"""
 
-    lateinit var gson : Gson
+    lateinit var gson: Gson
 
     @Before
     fun setupGsonBuilder() {
@@ -1604,16 +1608,106 @@ class JsonDeserializationTests {
     }
 
     @Test
-    fun canDeserializeListOfOffices() {
+    fun canDeserializeListOfDivisions() {
         val info = gson.fromJson<CivicInfo>(StringReader(windingWayInfo), CivicInfo::class.java)
 
         assertUnitedStatesDivision(info.divisions[0])
+        assertOhioDivision(info.divisions[1])
     }
 
+    @Test
+    fun canDeserializeListOfOffices() {
+        val info = gson.fromJson<CivicInfo>(StringReader(windingWayInfo), CivicInfo::class.java)
+
+        assertPresident(info.offices[0])
+    }
+
+    @Test
+    fun canDeserializeRepresentatives() {
+        val info = gson.fromJson<CivicInfo>(StringReader(windingWayInfo), CivicInfo::class.java)
+        assertTrump(info.representatives[0])
+    }
+
+    private fun assertTrump(rep: Representative): Unit {
+        assertEquals("Donald J. Trump", rep.name)
+        val whiteHouse = Address(
+                "The White House",
+                "1600 Pennsylvania Avenue NW",
+                "Washington",
+                "DC",
+                20500
+        )
+
+        assertEquals(Party.Republican, rep.party)
+        assertEquals(whiteHouse, rep.address)
+    }
+
+    /*
+   {
+   "name": "Donald J. Trump",
+   "address": [
+    {
+     "line1": "The White House",
+     "line2": "1600 Pennsylvania Avenue NW",
+     "city": "Washington",
+     "state": "DC",
+     "zip": "20500"
+    }
+   ],
+   "party": "Republican",
+   "phones": [
+    "(202) 456-1111"
+   ],
+   "urls": [
+    "http://www.whitehouse.gov/"
+   ],
+   "photoUrl": "https://www.whitehouse.gov/sites/whitehouse.gov/files/images/45/PE%20Color.jpg",
+   "channels": [
+    {
+     "type": "GooglePlus",
+     "id": "+whitehouse"
+    },
+    {
+     "type": "Facebook",
+     "id": "whitehouse"
+    },
+    {
+     "type": "Twitter",
+     "id": "potus"
+    },
+    {
+     "type": "YouTube",
+     "id": "whitehouse"
+    }
+   ]*/
+
+    //region private methods
     private fun assertUnitedStatesDivision(div: Division) {
         assertEquals("ocd-division/country:us", div.DivisionId)
         assertEquals("United States", div.Name)
         assertEquals(0, div.OfficeIndices[0])
         assertEquals(1, div.OfficeIndices[1])
     }
+
+    private fun assertOhioDivision(div: Division) {
+        assertEquals("ocd-division/country:us/state:oh", div.DivisionId)
+        assertEquals("Ohio", div.Name)
+        assertEquals(2, div.OfficeIndices[0])
+        assertEquals(4, div.OfficeIndices[1])
+        assertEquals(5, div.OfficeIndices[2])
+        assertEquals(11, div.OfficeIndices[3])
+        assertEquals(12, div.OfficeIndices[4])
+        assertEquals(13, div.OfficeIndices[5])
+        assertEquals(14, div.OfficeIndices[6])
+        assertEquals(15, div.OfficeIndices[7])
+    }
+
+    private fun assertPresident(office: Office) {
+        assertEquals("President of the United States", office.Name)
+        assertEquals("ocd-division/country:us", office.DivisionId)
+        assertEquals("country", office.Levels[0])
+        assertEquals("headOfState", office.Roles[0])
+        assertEquals("headOfGovernment", office.Roles[1])
+    }
+    //endregion
 }
